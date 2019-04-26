@@ -1,0 +1,86 @@
+project:clib {
+	var:cc "gcc"
+	var:cflags ""
+
+	processor:compile.c {
+		"echo Building ${@}..."
+		"${cc} ${cflags} -c -o ${@} ${<}"
+	}
+
+	target:cobjs {
+		input glob="*.c" prefix="source/"
+		output "%.o"
+		processor:compile.c
+	}
+
+	output:clib {
+		input target:cobjs="*"
+		output "libclib.a"
+
+		export {
+			var:lflags "-l${output}"
+		}
+
+		"echo Archiving ${@}..."
+		"${ar} rcs ${arflags} ${@} ${<}"
+	}
+}
+
+project:cpplib {
+	var:cxx "g++"
+	var:cxxflags ""
+
+	processor:compile.cxx {
+		"echo Building ${@}..."
+		"${cxx} ${cxxflags} -c -o ${@} ${<}"
+	}
+
+	target:cppobjs {
+		input glob="*.cpp" prefix="source/"
+		output "%.o"
+		processor:compile.cxx
+	}
+
+	output:cpplib {
+		input target:cppobjs="*"
+		output "libcpplib.a"
+
+		export {
+			var:lflags "-l${output} -lstdc++"
+		}
+
+		"echo Archiving ${@}..."
+		"${ar} rcs ${arflags} ${@} ${<}"
+	}
+}
+
+project:base {
+	var:dc "dmd"
+
+	var:dflags ""
+	var:lflags ""
+
+	dependency:clib
+	dependency:cpplib
+
+	processor:compile.d {
+		"echo Building ${@}..."
+		"${dc} ${dflags} -c -of${@} ${<}"
+	}
+
+	processor:link "echo Linking ${@}" "${dc} ${lflags} -of${@} ${<}"
+
+	target:dobjs {
+		input glob="*.d{,i}" prefix="source/"
+		output "%.o"
+		processor:compile.d
+	}
+
+	target:base output=true {
+		input target:dobjs="*"
+		output "base"
+		processor:link
+	}
+}
+
+build:base

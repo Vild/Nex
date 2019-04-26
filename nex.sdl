@@ -1,0 +1,16 @@
+project:sdlang-d {
+	importDub "sdlang-d"
+}
+
+project:nex {
+	name "nex"
+	description "Build system used for PowerNex"
+	authors "Dan Printzell"
+	copyright "Copyright © 2019, Dan Printzell"
+	license "MPLv2"
+
+	executable:nex {
+		input glob="*.d" prefix="source/"
+		dependency "sdlang-d" version="~>0.10.5"
+	}
+}

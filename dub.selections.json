@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"sdlang-d": "0.10.5",
+		"taggedalgebraic": "0.11.3",
+		"unit-threaded": "0.7.55"
+	}
+}

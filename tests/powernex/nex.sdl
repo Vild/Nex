@@ -1,0 +1,51 @@
+template userspace {
+	dflags " -m64 -dip25 -dip1000 -dip1008 -fPIC -betterC -dw -color=on -debug -c -g -of$out$ $in$ -defaultlib=build/objs/DRuntime/libdruntime.a -debuglib=build/objs/DRuntime/libdruntime.a -Isrc/libraries/druntime"
+	lflags " -o $out$ $in$ -nostdlib --gc-sections"
+	aflags " rcs $out$ $in$"
+
+	processor DC {
+		run "Building $@..."
+		run "$dc -c -o $@ $<"
+	}
+	processor LD "$ld -o $@ $<"
+}
+
+project init version=0.1.337 extends=userspace {
+	dflags "-version=Target_" $name " -Isrc/libraries/gfx"
+	dependencies druntime;
+
+	target objs {
+		input prefix="src/binaries/init/" "app.d"
+		output from="src/%.o" to="obj/%.o"
+		operation action=transform DC
+	}
+
+	target init {
+		input target=objs
+		output "draw"
+		operation action=combine LD
+	}
+
+	outputs init
+}
+build init
+
+project draw version=0.1.337 extends=userspace {
+	dflags "-version=Target_" $name " -Isrc/libraries/gfx"
+	dependencies druntime gfx;
+
+	target objs {
+		input prefix="src/binaries/draw/" "app.d"
+		output "dcode.o"
+		operation action=combine DC
+	}
+
+	target draw {
+		input target=objs
+		output "draw"
+		operation action=combine LD
+	}
+
+	output draw
+}
+build draw
