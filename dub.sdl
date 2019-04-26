@@ -1,0 +1,6 @@
+name "nex"
+description "Build system used for PowerNex"
+authors "Dan Printzell"
+copyright "Copyright © 2019, Dan Printzell"
+license "MPLv2"
+dependency "sdlang-d" version="~>0.10.5"
