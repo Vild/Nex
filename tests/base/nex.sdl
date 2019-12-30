@@ -6,23 +6,25 @@ project:clib {
 		"echo Building ${@}..."
 		"${cc} ${cflags} -c -o ${@} ${<}"
 	}
-
-	target:cobjs {
-		input glob="*.c" prefix="source/"
-		output "%.o"
-		processor:compile.c
+	processor:link {
+		"echo Archiving ${@}..."
+		"${ar} rcs ${arflags} ${@} ${<}"
 	}
 
-	output:clib {
-		input target:cobjs="*"
+	target:cobjs {
+		input "*.c" prefix="source/"
+		output "%.o"
+		processor "compile.c"
+	}
+
+	target:clib {
+		input target="cobjs"
 		output "libclib.a"
+		processor "link"
 
 		export {
 			var:lflags "-l${output}"
 		}
-
-		"echo Archiving ${@}..."
-		"${ar} rcs ${arflags} ${@} ${<}"
 	}
 }
 
@@ -34,23 +36,25 @@ project:cpplib {
 		"echo Building ${@}..."
 		"${cxx} ${cxxflags} -c -o ${@} ${<}"
 	}
-
-	target:cppobjs {
-		input glob="*.cpp" prefix="source/"
-		output "%.o"
-		processor:compile.cxx
+	processor:link {
+		"echo Archiving ${@}..."
+		"${ar} rcs ${arflags} ${@} ${<}"
 	}
 
-	output:cpplib {
-		input target:cppobjs="*"
+	target:cppobjs {
+		input "*.cpp" prefix="source/"
+		output "%.o"
+		processor "compile.cxx"
+	}
+
+	target:cpplib {
+		input target="cppobjs"
 		output "libcpplib.a"
+		processor "link"
 
 		export {
 			var:lflags "-l${output} -lstdc++"
 		}
-
-		"echo Archiving ${@}..."
-		"${ar} rcs ${arflags} ${@} ${<}"
 	}
 }
 
@@ -60,8 +64,8 @@ project:base {
 	var:dflags ""
 	var:lflags ""
 
-	dependency:clib
-	dependency:cpplib
+	dependency "clib"
+	dependency "cpplib"
 
 	processor:compile.d {
 		"echo Building ${@}..."
@@ -71,16 +75,16 @@ project:base {
 	processor:link "echo Linking ${@}" "${dc} ${lflags} -of${@} ${<}"
 
 	target:dobjs {
-		input glob="*.d{,i}" prefix="source/"
+		input "*.d{,i}" prefix="source/"
 		output "%.o"
-		processor:compile.d
+		processor "compile.d"
 	}
 
-	target:base output=true {
-		input target:dobjs="*"
+	target:base {
+		input target="dobjs"
 		output "base"
-		processor:link
+		processor "link"
 	}
 }
 
-build:base
+build "base"

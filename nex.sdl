@@ -9,8 +9,26 @@ project:nex {
 	copyright "Copyright © 2019, Dan Printzell"
 	license "MPLv2"
 
-	executable:nex {
-		input glob="*.d" prefix="source/"
-		dependency "sdlang-d" version="~>0.10.5"
+	dependency:sdlang-d version="~>0.10.5"
+
+	processor:compile.d {
+		"echo Building ${@}..."
+		"${dc} ${dflags} -c -of${@} ${<}"
+	}
+
+	processor:link "echo Linking ${@}" "${dc} ${lflags} -of${@} ${<}"
+
+	target:dobjs {
+		input glob="*.d{,i}" prefix="source/"
+		output "%.o"
+		processor:compile.d
+	}
+
+	target:nex {
+		input target:dobjs="*"
+		output "nex"
+		processor:link
 	}
 }
+
+build:nex
