@@ -1,0 +1,60 @@
+/*
+ * Namespace:var
+ * To clear just write: NS:var
+ * To append write: NS:var "value to append"
+ */
+
+env:PATH "$PWD/build/cc/bin"
+
+# Everything extends this one
+template "DEFAULT" {
+	# Nothing is defined by default here.
+
+	# paths that don't start with "/" is relative to the current nex.sdl file
+	dir:build "build/tmp/"
+	config:path "@dir:build@config/"
+
+	d:binary "dmd"
+	d:flags "-I@dir:config@ -J@dir:config@" # Add config path.
+
+	asm:binary "as"
+	asm:flags "-I@dir:config@ -J@dir:config@" # Add config path.
+
+	processor extensions=["d"] output="@FILE@.o" command="@d:binary@ @d:flags@ -c @IN@ -of @OUT@"
+	processor extensions=["S"] output="@FILE@.o" command="@asm:binary@ @asm:flags@ -c @IN@ -o @OUT@"
+}
+
+template "tool" {
+	d:flags "-w"
+}
+
+template "baremetal" {
+	d:binary "powernex-dmd"
+	asm:binary "x86_64-powernex-as"
+	ld:binary "ld.lldb"
+
+	option name="build:release" type="bool" default=false
+	option name="build:debugsymbols" type="bool" default=true
+	if "@build:release@" {
+		d:flags "-release"
+	} else {
+		d:flags "-debug"
+	}
+
+	if "@build:debugsymbols@" {
+		d:flags "-g"
+	}
+}
+
+template "userspace" extends="baremetal" {
+	dflags # Clear away default flags
+	dflags "-I@dir:config@ -J@dir:config@" # Re-add config path.
+	if MODE==debug
+		dflags "-g"
+}
+
+
+target "test" template="tool" {
+	output "bin/test"
+	source "source/*.d"
+}

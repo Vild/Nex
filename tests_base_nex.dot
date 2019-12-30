@@ -1,0 +1,85 @@
+digraph Nex {
+	subgraph cluster_project_cpplib{
+		label="Project: cpplib";
+		style=filled;
+		color=lightseagreen;
+		subgraph cluster_target_cpplib{
+			style=filled;
+			color=lightblue;
+			label="Target: cpplib";
+			target_cpplib_cpplib[label="Target: cpplib",style=filled,color=lightgrey];
+			target_cpplib_cppobjs -> target_cpplib_cpplib;
+		}
+		subgraph cluster_target_cppobjs{
+			style=filled;
+			color=lightblue;
+			label="Target: cppobjs";
+			target_cpplib_cppobjs[label="Target: cppobjs",style=filled,color=lightgrey];
+			subgraph cluster_path_cpplib_cppobjs_0_0{
+				style=filled;
+				color=white;
+				label="Path: source/*.cpp";
+				"path_cpplib_cppobjs_0"[label="Path: tests/base/source/cppfunc.cpp",style=filled,color=grey];
+				"path_cpplib_cppobjs_0" -> target_cpplib_cppobjs;
+			}
+		}
+	}
+	subgraph cluster_project_base{
+		label="Project: base";
+		style=filled;
+		color=lightseagreen;
+		subgraph cluster_target_base{
+			style=filled;
+			color=lightblue;
+			label="Target: base";
+			target_base_base[label="Target: base",style=filled,color=lightgrey];
+			target_base_dobjs -> target_base_base;
+		}
+		subgraph cluster_target_dobjs{
+			style=filled;
+			color=lightblue;
+			label="Target: dobjs";
+			target_base_dobjs[label="Target: dobjs",style=filled,color=lightgrey];
+			subgraph cluster_path_base_dobjs_0_0{
+				style=filled;
+				color=white;
+				label="Path: source/*.d{,i}";
+				"path_base_dobjs_0"[label="Path: tests/base/source/app.d",style=filled,color=grey];
+				"path_base_dobjs_0" -> target_base_dobjs;
+				"path_base_dobjs_1"[label="Path: tests/base/source/dfunc.d",style=filled,color=grey];
+				"path_base_dobjs_1" -> target_base_dobjs;
+			}
+		}
+	}
+	target_clib_clib -> target_base_base;
+	target_cpplib_cpplib -> target_base_base;
+	subgraph cluster_project_clib{
+		label="Project: clib";
+		style=filled;
+		color=lightseagreen;
+		subgraph cluster_target_cobjs{
+			style=filled;
+			color=lightblue;
+			label="Target: cobjs";
+			target_clib_cobjs[label="Target: cobjs",style=filled,color=lightgrey];
+			subgraph cluster_path_clib_cobjs_0_0{
+				style=filled;
+				color=white;
+				label="Path: source/*.c";
+				"path_clib_cobjs_0"[label="Path: tests/base/source/cfunc.c",style=filled,color=grey];
+				"path_clib_cobjs_0" -> target_clib_cobjs;
+			}
+		}
+		subgraph cluster_target_clib{
+			style=filled;
+			color=lightblue;
+			label="Target: clib";
+			target_clib_clib[label="Target: clib",style=filled,color=lightgrey];
+			target_clib_cobjs -> target_clib_clib;
+		}
+	}
+	subgraph cluster__will_build {
+		build_base[label="Build: base",style=filled,color=magenta];
+		build_base -> target_base_base;
+	}
+}
