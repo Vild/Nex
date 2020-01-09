@@ -1,34 +1,77 @@
-project:sdlang-d {
-	importDub "sdlang-d"
+version:taggedalgebraic "0.11.3"
+version:sdlang_d "0.10.5"
+
+template {
+	dir:build ".dub/build"
+	dir:bin "bin"
+
+	// Single file processing
+	//processor extensions="*.d" output="@FILE@.o" command="@d:binary@ @d:flags@ -c @IN@ -of @OUT@"
+	//output_processor extensions="*.{o,a}" output="@FILE@" command="@d:binary@ @d:flags@ @l:flags@ -lib @IN@ -of @OUT@" multiple_files=true
+
+	d:binary "dmd"
+	d:flags "-debug -w -vcolumns"
+	l:flags
+	a:flags
+
+	if defined="ENV:mode" ENV:mode="release" {
+		#print "Compiling release mode"
+		d:flags "-release -inline -O"
+	}
+	else {
+		#print "Compiling debug mode"
+		d:flags "-debug -g"
+	}
+
+	output_processor description="Link @OUT@" extensions="*.{d,o,a}" output="*[!(.a)(.so)]" command="@d:binary@ @d:flags@ @l:flags@ @IN@ -of=@OUT@" multiple_files=true
+	output_processor description="Link @OUT@" extensions="*.{d,o,a}" output="lib*.a" multiple_files=true {
+		#"echo Linking static library: @OUT@"
+		"@d:binary@ @d:flags@ @a:flags@ @IN@ -lib -of=@OUT@"
+	}
+	output_processor description="Link @OUT@" extensions="*.{d,o,a}" output="lib*.so" multiple_files=true {
+		#"echo Linking shared library"
+		"@d:binary@ @d:flags@ @l:flags@ @IN@ -shared -of=@OUT@"
+	}
 }
 
-project:nex {
-	name "nex"
-	description "Build system used for PowerNex"
-	authors "Dan Printzell"
-	copyright "Copyright © 2019, Dan Printzell"
-	license "MPLv2"
-
-	dependency:sdlang-d version="~>0.10.5"
-
-	processor:compile.d {
-		"echo Building ${@}..."
-		"${dc} ${dflags} -c -of${@} ${<}"
-	}
-
-	processor:link "echo Linking ${@}" "${dc} ${lflags} -of${@} ${<}"
-
-	target:dobjs {
-		input glob="*.d{,i}" prefix="source/"
-		output "%.o"
-		processor:compile.d
-	}
-
-	target:nex {
-		input target:dobjs="*"
-		output "nex"
-		processor:link
-	}
+template "dub_dependency" extends="" {
+	// Extra dub stuff here
+	dub:dummy "true"
 }
 
-build:nex
+target "taggedalgebraic" template="dub_dependency" {
+	dir:taggedalgebraic "~/.dub/packages/taggedalgebraic-@version:taggedalgebraic@/taggedalgebraic"
+	source "@dir:taggedalgebraic@/source"
+	d:flags "-I=@dir:taggedalgebraic@/source -version=Have_taggedalgebraic"
+	if exist="@dir:taggedalgebraic@/view" {
+		d:flags "-J=@dir:taggedalgebraic@/view"
+	}
+	output "@dir:bin@/libtaggedalgebraic-@version:taggedalgebraic@.a"
+	export d:flags="@d:flags@" l:flags="@output@"
+}
+
+target "sdlang_d" template="dub_dependency" {
+	dependency "taggedalgebraic"
+
+	dir:sdlang_d "~/.dub/packages/sdlang-d-@version:sdlang_d@/sdlang-d"
+	source "@dir:sdlang_d@/src"
+	d:flags "-I=@dir:sdlang_d@/src -version=Have_sdlang_d"
+	if exist="@dir:sdlang_d@/view" {
+		d:flags "-J=@dir:sdlang_d@/view"
+	}
+	output "@dir:bin@/libsdlang-d-@version:sdlang_d@.a"
+	export d:flags="@d:flags@" l:flags="@output@"
+}
+
+target "nex" {
+	dependency "sdlang_d"
+	dir:nex "."
+	source "@dir:nex@/source"
+	d:flags "-I=@dir:nex@/source -version=Have_nex"
+	if exist="@dir:nex@/view" {
+		d:flags "-J=@dir:nex@/view"
+	}
+	output "@dir:bin@/nex"
+}
+
+build "nex"

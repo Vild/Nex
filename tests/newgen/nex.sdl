@@ -7,7 +7,7 @@
 env:PATH "$PWD/build/cc/bin"
 
 # Everything extends this one
-template "DEFAULT" {
+template {
 	# Nothing is defined by default here.
 
 	# paths that don't start with "/" is relative to the current nex.sdl file

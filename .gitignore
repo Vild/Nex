@@ -26,3 +26,5 @@ docs/
 
 #
 .vscode/ipch
+compile_commands.json
+/bin
