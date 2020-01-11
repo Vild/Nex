@@ -6,8 +6,7 @@ template {
 	dir:bin "bin"
 
 	// Single file processing
-	//processor extensions="*.d" output="@FILE@.o" command="@d:binary@ @d:flags@ -c @IN@ -of @OUT@"
-	//output_processor extensions="*.{o,a}" output="@FILE@" command="@d:binary@ @d:flags@ @l:flags@ -lib @IN@ -of @OUT@" multiple_files=true
+	processor description="Compile @OUT@" input="*.d" output="*.o" command="@d:binary@ @d:flags@ -c @IN@ -of @OUT@"
 
 	d:binary "dmd"
 	d:flags "-debug -w -vcolumns"
@@ -23,15 +22,9 @@ template {
 		d:flags "-debug -g"
 	}
 
-	output_processor description="Link @OUT@" extensions="*.{d,o,a}" output="*[!(.a)(.so)]" command="@d:binary@ @d:flags@ @l:flags@ @IN@ -of=@OUT@" multiple_files=true
-	output_processor description="Link @OUT@" extensions="*.{d,o,a}" output="lib*.a" multiple_files=true {
-		#"echo Linking static library: @OUT@"
-		"@d:binary@ @d:flags@ @a:flags@ @IN@ -lib -of=@OUT@"
-	}
-	output_processor description="Link @OUT@" extensions="*.{d,o,a}" output="lib*.so" multiple_files=true {
-		#"echo Linking shared library"
-		"@d:binary@ @d:flags@ @l:flags@ @IN@ -shared -of=@OUT@"
-	}
+	processor description="Link @OUT@" input="*.{o,a}" output="*[!(.a)(.so)]" command="@d:binary@ @d:flags@ @l:flags@ @IN@ -of=@OUT@" multiple_files=true
+	processor description="Link @OUT@" input="*.{o,a}" output="lib*.a" command="@d:binary@ @d:flags@ @a:flags@ @IN@ -lib -of=@OUT@" multiple_files=true
+	processor description="Link @OUT@" input="*.{o,a}" output="lib*.so" command="@d:binary@ @d:flags@ @l:flags@ @IN@ -shared -of=@OUT@" multiple_files=true
 }
 
 template "dub_dependency" extends="" {
@@ -42,12 +35,13 @@ template "dub_dependency" extends="" {
 target "taggedalgebraic" template="dub_dependency" {
 	dir:taggedalgebraic "~/.dub/packages/taggedalgebraic-@version:taggedalgebraic@/taggedalgebraic"
 	source "@dir:taggedalgebraic@/source"
-	d:flags "-I=@dir:taggedalgebraic@/source -version=Have_taggedalgebraic"
+	_d:flags "-I=@dir:taggedalgebraic@/source -version=Have_taggedalgebraic"
 	if exist="@dir:taggedalgebraic@/view" {
-		d:flags "-J=@dir:taggedalgebraic@/view"
+		_d:flags "-J=@dir:taggedalgebraic@/view"
 	}
+	d:flags "@_d:flags@"
 	output "@dir:bin@/libtaggedalgebraic-@version:taggedalgebraic@.a"
-	export d:flags="@d:flags@" l:flags="@output@"
+	export d:flags="@_d:flags@" l:flags="@output@"
 }
 
 target "sdlang_d" template="dub_dependency" {
@@ -55,22 +49,24 @@ target "sdlang_d" template="dub_dependency" {
 
 	dir:sdlang_d "~/.dub/packages/sdlang-d-@version:sdlang_d@/sdlang-d"
 	source "@dir:sdlang_d@/src"
-	d:flags "-I=@dir:sdlang_d@/src -version=Have_sdlang_d"
+	_d:flags "-I=@dir:sdlang_d@/src -version=Have_sdlang_d"
 	if exist="@dir:sdlang_d@/view" {
-		d:flags "-J=@dir:sdlang_d@/view"
+		_d:flags "-J=@dir:sdlang_d@/view"
 	}
+	d:flags "@_d:flags@"
 	output "@dir:bin@/libsdlang-d-@version:sdlang_d@.a"
-	export d:flags="@d:flags@" l:flags="@output@"
+	export d:flags="@_d:flags@" l:flags="@output@"
 }
 
 target "nex" {
 	dependency "sdlang_d"
 	dir:nex "."
 	source "@dir:nex@/source"
-	d:flags "-I=@dir:nex@/source -version=Have_nex"
+	_d:flags "-I=@dir:nex@/source -version=Have_nex"
 	if exist="@dir:nex@/view" {
-		d:flags "-J=@dir:nex@/view"
+		_d:flags "-J=@dir:nex@/view"
 	}
+	d:flags "@_d:flags@"
 	output "@dir:bin@/nex"
 }
 

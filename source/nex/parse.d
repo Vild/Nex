@@ -70,11 +70,11 @@ struct Variables {
 	alias vars this;
 }
 
-struct OutputProcessor {
+struct Processor {
 	string description;
-	string extensions;
+	string input;
 	string output;
-	string[] commands;
+	string command;
 
 	bool multipleFiles = false;
 }
@@ -87,7 +87,7 @@ struct Template {
 
 	If[] ifStatements;
 
-	OutputProcessor[] outputProcessors;
+	Processor[] processors;
 }
 
 struct If {
@@ -404,21 +404,18 @@ private:
 			scope (exit)
 				lastTag = t;
 			switch (t.getFullName.toString) {
-			case "output_processor":
+			case "processor":
 				t.expectAttribute!string("description");
-				t.expectAttribute!string("extensions");
+				t.expectAttribute!string("input");
 				t.expectAttribute!string("output");
-				OutputProcessor op;
-				op.description = t.getAttribute!string("description");
-				op.extensions = t.getAttribute!string("extensions");
-				op.output = t.getAttribute!string("output");
-				if (auto cmd = t.getAttribute!string("command", null))
-					op.commands ~= cmd;
-				else
-					foreach (Tag l; t.all.tags)
-						op.commands ~= l.getValue!string();
-				op.multipleFiles = t.getAttribute!bool("multiple_files", false);
-				template_.outputProcessors ~= op;
+				t.expectAttribute!string("command");
+				Processor p;
+				p.description = t.getAttribute!string("description");
+				p.input = t.getAttribute!string("input");
+				p.output = t.getAttribute!string("output");
+				p.command = t.getAttribute!string("command", null);
+				p.multipleFiles = t.getAttribute!bool("multiple_files", false);
+				template_.processors ~= p;
 				break;
 			case "if":
 				template_.ifStatements ~= _parseIf(t);
